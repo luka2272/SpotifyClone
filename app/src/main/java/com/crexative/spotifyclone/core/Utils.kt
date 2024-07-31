@@ -9,9 +9,9 @@ object Utils {
         val hourOfDay: Int = calendar.get(Calendar.HOUR_OF_DAY)
 
         return if (hourOfDay >= 12) {
-            "Buenas tardes!"
+            "Good Evening!"
         } else {
-            "Buenos días!"
+            "Good Morning!"
         }
     }
 }

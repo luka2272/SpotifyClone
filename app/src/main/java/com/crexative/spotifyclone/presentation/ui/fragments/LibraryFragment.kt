@@ -9,8 +9,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.crexative.spotifyclone.R
 import com.crexative.spotifyclone.databinding.FragmentLibraryBinding
+import com.crexative.spotifyclone.presentation.ui.SpotifyViewModel
 import com.crexative.spotifyclone.presentation.ui.adapters.PlaylistAdapter
 import com.crexative.spotifyclone.presentation.viewmodels.UserViewModel
+import com.spotify.android.appremote.api.SpotifyAppRemote
 import dagger.hilt.android.AndroidEntryPoint
 
 private val TAG: String = LibraryFragment::class.java.simpleName
@@ -18,6 +20,7 @@ private val TAG: String = LibraryFragment::class.java.simpleName
 @AndroidEntryPoint
 class LibraryFragment : Fragment(R.layout.fragment_library) {
 
+    private val viewModel: SpotifyViewModel by activityViewModels()
     private lateinit var binding: FragmentLibraryBinding
     private val userViewModel: UserViewModel by activityViewModels()
     private lateinit var playLisAdapter: PlaylistAdapter
@@ -38,7 +41,20 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
 
         playLisAdapter.setOnItemClickListener { item ->
             Log.e(TAG, "setupView: $item")
-            // Navigate another screen
+            viewModel.spotifyAppRemote.observe(viewLifecycleOwner) { spotifyAppRemote ->
+                if (spotifyAppRemote != null) {
+                    // Now you can interact with SpotifyAppRemote
+                    spotifyAppRemote.playerApi.play(item.uri)
+                        .setResultCallback {
+                            Log.d("LibraryFragment", "Playlist is playing")
+                        }
+                        .setErrorCallback {
+                            Log.e("LibraryFragment", "Error playing playlist", it)
+                        }
+                } else {
+                    // Handle the case where spotifyAppRemote is not connected
+                }
+            }
         }
     }
 

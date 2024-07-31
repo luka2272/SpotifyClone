@@ -1,34 +1,37 @@
 package com.crexative.spotifyclone.presentation.ui.fragments
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
 import com.crexative.spotifyclone.R
-import com.crexative.spotifyclone.core.AppPreferences
-import com.crexative.spotifyclone.core.Constants
 import com.crexative.spotifyclone.databinding.FragmentLoginBinding
+import com.crexative.spotifyclone.presentation.ui.SpotifyViewModel
 import com.google.android.material.snackbar.Snackbar
-import com.spotify.sdk.android.auth.AuthorizationClient
-import com.spotify.sdk.android.auth.AuthorizationRequest
-import com.spotify.sdk.android.auth.AuthorizationResponse
+
+private val TAG: String = LoginFragment::class.java.simpleName
 
 class LoginFragment : Fragment(R.layout.fragment_login) {
 
     private lateinit var binding: FragmentLoginBinding
+    private lateinit var navController: NavController
+    private val viewModel: SpotifyViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentLoginBinding.bind(view)
-
+        val navHostFragment = requireActivity().supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
         handleLoginClick()
-
-        if (!AppPreferences.token.isNullOrEmpty())
-            onRequestTokenClicked()
     }
 
     private fun handleLoginClick() {
         binding.btnLogin.setOnClickListener {
-            onRequestTokenClicked()
+            connectToSpotify()
         }
 
         binding.btnCreateAccount.setOnClickListener {
@@ -40,13 +43,21 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         }
     }
 
-    private fun onRequestTokenClicked() {
+    private fun connectToSpotify() {
+        viewModel.connect(requireContext(), {
+            // Handle successful connection to Spotify
+            navigateMainFragment()
+        }, { throwable: Throwable ->
+            // Handle connection failure
+            Log.e(TAG, "Connection failed", throwable)
+        })
+    }
 
-        val builder = AuthorizationRequest.Builder(
-            Constants.CLIENT_ID, AuthorizationResponse.Type.TOKEN, Constants.REDIRECT_URI
-        )
-        builder.setScopes(arrayOf("streaming user-top-read"))
-        val request = builder.build()
-        AuthorizationClient.openLoginActivity(requireActivity(), Constants.REQUEST_CODE, request)
+    private fun navigateMainFragment() {
+        try {
+            navController.navigate(R.id.action_loginFragment_to_homeScreenFragment)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
