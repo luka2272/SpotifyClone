@@ -47,7 +47,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     private fun handleLoginClick() {
         binding.btnLogin.setOnClickListener {
             // Start the authentication process
-            connectToSpotify()
             showLoginActivityCode.launch(getLoginActivityCodeIntent())
         }
 
@@ -133,7 +132,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 AuthorizationResponse.Type.TOKEN -> {
                     AppPreferences.token = authorizationResponse.accessToken
                     Log.d(TAG, "Access Token: ${authorizationResponse.accessToken}")
-                    // Navigate to home screen or handle success
+                    connectToSpotify()
                     navigateMainFragment()
                 }
                 AuthorizationResponse.Type.ERROR -> {
