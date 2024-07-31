@@ -14,6 +14,7 @@ import com.crexative.spotifyclone.core.visible
 import com.crexative.spotifyclone.data.models.search.Item
 import com.crexative.spotifyclone.data.models.search.ItemTrack
 import com.crexative.spotifyclone.databinding.FragmentSearchBinding
+import com.crexative.spotifyclone.presentation.ui.SpotifyViewModel
 import com.crexative.spotifyclone.presentation.ui.adapters.ArtistAdapter
 import com.crexative.spotifyclone.presentation.ui.adapters.SearchItemConcatAdapter
 import com.crexative.spotifyclone.presentation.ui.adapters.TrackAdapter
@@ -27,6 +28,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
     private lateinit var binding: FragmentSearchBinding
     private val searchViewModel: SearchViewModel by activityViewModels()
+    private val viewModel: SpotifyViewModel by activityViewModels()
 
     private val tracksAdapter = TrackAdapter()
     private val artistAdapter = ArtistAdapter()
@@ -52,6 +54,25 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
                 return false
             }
         })
+
+        tracksAdapter.setOnItemClickListener { item ->
+            Log.e(TAG, "setupView: $item")
+            viewModel.spotifyAppRemote.observe(viewLifecycleOwner) { spotifyAppRemote ->
+                if (spotifyAppRemote != null) {
+                    // Now you can interact with SpotifyAppRemote
+                    spotifyAppRemote.playerApi.play(item.uri)
+                        .setResultCallback {
+                            Log.d("LibraryFragment", "Playlist is playing")
+                        }
+                        .setErrorCallback {
+                            Log.e("LibraryFragment", "Error playing playlist", it)
+                        }
+                } else {
+                    // Handle the case where spotifyAppRemote is not connected
+                }
+            }
+        }
+
     }
 
     private fun observeSearch() = with(binding) {
@@ -79,4 +100,5 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         }
 
     }
+
 }
